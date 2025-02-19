@@ -1,0 +1,24 @@
+/* Basic page styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+/* Header styling */
+h1 {
+    color: #007BFF;
+    margin-top: 50px;
+}
+
+/* Adding some padding and border to the body */
+.container {
+    padding: 20px;
+    margin-top: 30px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
