@@ -37,6 +37,9 @@ async function startServer() {
                 if (userId) {
                     userSockets.set(userId, socket.id); // Map the userId to the socket.id to track the user's connection
                     console.log(`User ${userId} registered with socket ID: ${socket.id}`); // Log the registration of the user
+
+                    // Broadcast to all clients that a new user has joined
+                    io.emit("userJoined", `User ${userId} has joined the chat.`);
                 } else {
                     console.error("register event received without userId."); // Log an error if no userId was provided
                 }

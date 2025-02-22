@@ -5,17 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat App</title>
-    <script src="/socket.io/socket.io.js"></script>
-    <link rel="stylesheet" href="styles.css">
-    <script src="script.js" defer></script>
+    <script src="/socket.io/socket.io.js"></script> <!-- Import Socket.IO client script -->
+    <link rel="stylesheet" href="styles.css"> <!-- Link external CSS file -->
+    <script src="script.js" defer></script> <!-- Link external JavaScript file -->
 </head>
 
 <body>
     <h1>Chat App</h1>
     <div id="chat-container">
-        <div id="messages"></div>
-        <input type="text" id="messageInput" placeholder="Type your message...">
-        <button id="sendMessage">Send</button>
+        <div id="messages"></div> <!-- Message display area -->
+        <input type="text" id="receiverIdInput" placeholder="Enter Receiver ID"> <!-- Input for receiver ID -->
+        <input type="text" id="messageInput" placeholder="Type your message..."> <!-- Input for message -->
+        <button id="sendMessage">Send</button> <!-- Button to send message -->
     </div>
 </body>
 
