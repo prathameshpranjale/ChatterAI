@@ -1,49 +1,110 @@
-const socket = io(); // Initialize Socket.IO connection
+const socket = io();
 
-// Prompt user to enter their user ID upon joining
-const userId = prompt("Enter your user ID:");
+// Register user
+const username = prompt("Enter your username:");
+const userId = Math.random().toString(36).substr(2, 9); // Generate a random user ID
+socket.emit("register", { userId, username });
 
-// Emit a 'register' event to notify the server that a new user has joined
-socket.emit("register", userId);
+// Display updated user list
+socket.on("updateUserList", (users) => {
+    const userList = document.getElementById("userList");
+    userList.innerHTML = ""; // Clear list
 
-// Notify all users that someone has joined
+    users.forEach((user) => {
+        const userItem = document.createElement("div");
+        userItem.textContent = user.username;
+        userItem.classList.add("user");
+        userList.appendChild(userItem);
+    });
+});
+
+// Display messages in Lobby
+socket.on("receiveMessage", ({ senderId, senderName, message }) => {
+    // Check if the message is from the current user
+    const displayName = senderId === userId ? "You" : senderName;
+    displayMessage(`${displayName}: ${message}`, "Lobby");
+});
+
+// Notify when a user joins the lobby
 socket.on("userJoined", (message) => {
-    displayMessage("Server", message);
+    displayMessage(message, "Lobby");
 });
 
-// Listen for welcome message from server
-socket.on("welcome", (message) => {
-    displayMessage("Server", message);
+// Notify when a user leaves the lobby
+socket.on("userLeft", (message) => {
+    displayMessage(message, "Lobby");
 });
 
-// Listen for incoming messages
-socket.on("receiveMessage", (data) => {
-    displayMessage(data.senderId, data.message);
-});
-
-// Handle sending messages
+// Send a message to the lobby
 document.getElementById("sendMessage").addEventListener("click", () => {
     const messageInput = document.getElementById("messageInput");
-    const receiverIdInput = document.getElementById("receiverIdInput");
-    const message = messageInput.value;
-    const receiverId = receiverIdInput.value; // Get receiver ID from input field
-
-    // Ensure message and receiver ID are not empty
-    if (message.trim() !== "" && receiverId.trim() !== "") {
-        // Emit the 'sendMessage' event with senderId, receiverId, and message
-        socket.emit("sendMessage", { senderId: userId, receiverId, message });
-
-        // Display message in sender's chat window
-        displayMessage("You", message);
-
-        // Clear input field after sending message
-        messageInput.value = "";
+    const message = messageInput.value.trim();
+    if (message) {
+        socket.emit("sendMessage", { senderId: userId, message });
+        messageInput.value = ""; // Clear the input field
     }
 });
 
-// Function to display messages in chat window
-function displayMessage(sender, message) {
+// Handle private chat initiation
+function startPrivateChat(receiverId, receiverName) {
+    const chatWindow = openChatWindow(receiverName);
+    socket.emit("startPrivateChat", { senderId: userId, receiverId });
+
+    socket.on("privateChatRequest", ({ roomName }) => {
+        chatWindow.setRoom(roomName);
+    });
+
+    socket.on("receivePrivateMessage", ({ senderName, message }) => {
+        chatWindow.displayMessage(`${senderName}: ${message}`);
+    });
+}
+
+// Function to open a private chat window
+function openChatWindow(username) {
+    const chatBox = document.createElement("div");
+    chatBox.classList.add("chat-box");
+
+    const chatHeader = document.createElement("div");
+    chatHeader.classList.add("chat-header");
+    chatHeader.textContent = username;
+    chatBox.appendChild(chatHeader);
+
+    const chatMessages = document.createElement("div");
+    chatMessages.classList.add("chat-messages");
+    chatBox.appendChild(chatMessages);
+
+    const chatInput = document.createElement("input");
+    chatInput.setAttribute("placeholder", "Type your message...");
+    chatBox.appendChild(chatInput);
+
+    const sendButton = document.createElement("button");
+    sendButton.textContent = "Send";
+    chatBox.appendChild(sendButton);
+
+    sendButton.addEventListener("click", () => {
+        const message = chatInput.value;
+        if (message.trim() !== "") {
+            socket.emit("sendPrivateMessage", { roomName: chatBox.roomName, senderId: userId, message });
+            displayMessage(`You: ${message}`, chatMessages);
+            chatInput.value = "";
+        }
+    });
+
+    document.body.appendChild(chatBox);
+
+    return {
+        setRoom: (room) => (chatBox.roomName = room),
+        displayMessage: (msg) => {
+            const msgDiv = document.createElement("div");
+            msgDiv.textContent = msg;
+            chatMessages.appendChild(msgDiv);
+        }
+    };
+}
+
+// Display messages in chat window
+function displayMessage(message, target = "Lobby") {
     const messageDiv = document.createElement("div");
-    messageDiv.textContent = `${sender}: ${message}`;
-    document.getElementById("messages").appendChild(messageDiv);
+    messageDiv.textContent = message;
+    document.getElementById(target === "Lobby" ? "messages" : target).appendChild(messageDiv);
 }
