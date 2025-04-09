@@ -1,11 +1,9 @@
 const socket = io();
 
-// Register user
 const username = prompt("Enter your username:");
-const userId = Math.random().toString(36).substr(2, 9); // Generate a random user ID
+const userId = Math.random().toString(36).substr(2, 9); 
 socket.emit("register", { userId, username });
 
-// Display updated user list
 socket.on("updateUserList", (users) => {
     const userList = document.getElementById("userList");
     userList.innerHTML = ""; // Clear list
